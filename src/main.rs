@@ -1,7 +1,11 @@
+mod template_manager;
+
 use std::fs::File;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::PathBuf;
+use std::thread;
+use template_manager::render;
 
 const SERVING_DIR: &str = "www";
 
@@ -20,7 +24,10 @@ fn handle_connection(mut stream: TcpStream) {
     let mut canonical = match path.canonicalize() {
         Ok(p) => p,
         Err(_) => {
-            println!("File not found");
+            let body = render("404", "Not Found");
+            let response = format!("HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: {}\r\nConnection: close\r\nServer: Ferrox\r\n\r\n{}", body.len(), body);
+            stream.write(response.as_bytes()).unwrap();
+            stream.flush().unwrap();
             return;
         }
     };
@@ -49,7 +56,7 @@ fn handle_connection(mut stream: TcpStream) {
         ),
     }
 
-    let response = format!("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{}", s);
+    let response = format!("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\nConnection: close\r\nServer: Ferrox\r\n\r\n{}",s.len(), s);
 
     stream.write(response.as_bytes()).unwrap();
     stream.flush().unwrap();
@@ -62,6 +69,8 @@ fn main() {
 
     for stream in listener.incoming() {
         let stream: TcpStream = stream.unwrap();
-        handle_connection(stream);
+        thread::spawn(|| {
+            handle_connection(stream);
+        });
     }
 }
