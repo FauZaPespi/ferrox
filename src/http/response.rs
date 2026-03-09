@@ -1,3 +1,4 @@
+use std::io::Write;
 use mime_guess::Mime;
 
 pub struct Response {
@@ -7,7 +8,7 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub fn write_to<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
         let headers = format!(
             "HTTP/1.1 {}\r\n\
              Content-Type: {}\r\n\
@@ -20,10 +21,9 @@ impl Response {
             self.body.len()
         );
 
-        let mut response = headers.into_bytes();
-        response.extend_from_slice(&self.body);
+        writer.write_all(headers.as_bytes())?;
+        writer.write_all(&self.body)?;
 
-        response
-        // Divide headers and body sending to improve efficiency.
+        Ok(())
     }
 }

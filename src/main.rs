@@ -3,5 +3,5 @@ mod http;
 mod handlers;
 
 fn main() {
-    server::serve("127.0.0.1:8080");
+    server::serve("0.0.0.0:80");
 }
