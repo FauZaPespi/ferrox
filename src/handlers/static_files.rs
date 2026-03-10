@@ -1,4 +1,5 @@
-use crate::http::{error::render_error, response::{Body, Response}};
+use crate::http::response::{Body, Response};
+use crate::utils::templates::render_error;
 use mime_guess::{self, mime};
 use std::{fs::File, path::PathBuf};
 
@@ -18,7 +19,7 @@ pub fn serve_file(file_path: &String) -> Result<Response, std::io::Error> {
                 status: "404 Not Found",
                 content_type: mime::TEXT_HTML,
                 content_length: body.len() as u64,
-                body: Body::Bytes(body)
+                body: Body::Bytes(body),
             });
         }
     };
@@ -30,12 +31,23 @@ pub fn serve_file(file_path: &String) -> Result<Response, std::io::Error> {
             status: "403 Forbidden",
             content_type: mime::TEXT_HTML,
             content_length: body.len() as u64,
-            body: Body::Bytes(body)
+            body: Body::Bytes(body),
         });
     }
 
     if canonical.is_dir() {
         canonical = canonical.join("index.html");
+
+        if !canonical.exists() {
+            let body = render_error("403", "Forbidden");
+
+            return Ok(Response {
+                status: "403 Forbidden",
+                content_type: mime::TEXT_HTML,
+                content_length: body.len() as u64,
+                body: Body::Bytes(body),
+            });
+        }
     }
 
     let file = File::open(&canonical)?;
@@ -46,6 +58,6 @@ pub fn serve_file(file_path: &String) -> Result<Response, std::io::Error> {
         status: "200 OK",
         content_type: mime,
         content_length: metadata.len(),
-        body: Body::File(file)
+        body: Body::File(file),
     })
 }

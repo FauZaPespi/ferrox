@@ -78,7 +78,7 @@ Important note: the server currently binds to `0.0.0.0:80`. On many systems, bin
 Ferrox is intentionally minimal right now. A few practical limitations of the current version:
 
 - The request buffer is fixed and small
-- Only the request line is parsed
+- Body is not parsed yet(no use for now)
 - There is no routing layer beyond static file serving
 - There is no keep-alive support
 - Error handling is intentionally simple

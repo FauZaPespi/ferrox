@@ -6,7 +6,7 @@ use time::UtcDateTime;
 use mime_guess::mime;
 
 use crate::handlers::static_files::serve_file;
-use crate::http::error::render_error;
+use crate::utils::templates::render_error;
 use crate::http::request::Request;
 use crate::http::response::{Body, Response};
 
@@ -28,7 +28,9 @@ pub fn serve(addr: &str) {
 fn handle(mut stream: TcpStream) -> std::io::Result<()> {
     let mut buffer: [u8; 1024] = [0; 1024];
     let size: usize = stream.read(&mut buffer).unwrap();
-    let ip: IpAddr = stream.peer_addr()?.ip();
+
+    let connecting_ip: IpAddr = stream.peer_addr()?.ip();
+    let requested_ip: IpAddr = stream.local_addr()?.ip();
     let date: UtcDateTime = UtcDateTime::now();
 
     let request: Request = Request::parse(&buffer[..size]);
@@ -46,14 +48,16 @@ fn handle(mut stream: TcpStream) -> std::io::Result<()> {
     };
 
     println!(
-        "{} - [{}] \"{} {} {}\" {} {}",
-        &ip.to_string(),
+        "{} - [{}] \"{} {} {}\" {} {} - \"{}\" \"{}\"",
+        &connecting_ip.to_string(),
         &date.to_string(),
         &request.method,
         &request.path,
         &request.version,
         &response.status,
-        &response.content_length
+        &response.content_length,
+        &request.headers.get("User-Agent").unwrap(),
+        &requested_ip.to_string()
     );
 
     response.write_headers(&mut stream)?;
