@@ -1,5 +1,6 @@
 use mime_guess::{Mime, mime};
-use std::{fs::File, io::Write};
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 
 use crate::utils::templates::render_error;
 
@@ -17,9 +18,8 @@ pub enum Body {
 }
 
 impl Response {
-    pub fn write_headers<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
-        write!(
-            writer,
+    pub async fn write_headers<W: AsyncWriteExt + Unpin>(&self, writer: &mut W,) -> std::io::Result<()> {
+        let mut header_string = format!(
             "HTTP/1.1 {}\r\n\
          Content-Type: {}\r\n\
          Content-Length: {}\r\n\
@@ -28,13 +28,15 @@ impl Response {
          X-Content-Type-Options: nosniff\r\n\
          X-Frame-Options: DENY\r\n",
             self.status, self.content_type, self.content_length,
-        )?;
+        );
 
         for (key, value) in &self.headers {
-            write!(writer, "{}: {}\r\n", key, value)?;
+            header_string.push_str(&format!("{}: {}\r\n", key, value));
         }
 
-        writer.write_all(b"\r\n")?;
+        header_string.push_str("\r\n");
+
+        writer.write_all(header_string.as_bytes()).await?;
 
         Ok(())
     }

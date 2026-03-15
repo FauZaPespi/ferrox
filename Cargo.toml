@@ -1,10 +1,10 @@
 [package]
 name = "ferrox"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 
 [dependencies]
 html-escape = "0.2.13"
 mime_guess = "2.0.5"
-threadpool = "1.8.1"
 time = "0.3.47"
+tokio = { version = "1", features = ["full"] }

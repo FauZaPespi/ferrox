@@ -1,5 +1,6 @@
 use std::net::IpAddr;
-use std::{fs::OpenOptions, net::TcpStream};
+use std::{fs::OpenOptions};
+use tokio::net::TcpStream;
 use std::io::Write;
 
 use time::UtcDateTime;

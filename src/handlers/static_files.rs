@@ -3,11 +3,12 @@ use crate::utils::templates::{render_indexing};
 use html_escape::encode_safe;
 use mime_guess::{self};
 use std::path::Path;
-use std::{fs::File, path::PathBuf};
+use std::{path::PathBuf};
+use tokio::fs::File;
 
 const SERVING_DIR: &str = "www";
 
-pub fn serve_file(file_path: &String) -> Result<Response, std::io::Error> {
+pub async fn serve_file(file_path: &String) -> Result<Response, std::io::Error> {
     let base = Path::new(SERVING_DIR).canonicalize()?;
     let requested_path = base.join(file_path.trim_start_matches('/'));
 
@@ -25,7 +26,7 @@ pub fn serve_file(file_path: &String) -> Result<Response, std::io::Error> {
         let index_html = canonical.join("index.html");
         
         if index_html.exists() {
-            return serve_actual_file(index_html);
+            return serve_actual_file(index_html).await;
         }
 
         return match index_files(canonical, file_path) {
@@ -34,12 +35,12 @@ pub fn serve_file(file_path: &String) -> Result<Response, std::io::Error> {
         };
     }
 
-    serve_actual_file(canonical)
+    serve_actual_file(canonical).await
 }
 
-fn serve_actual_file(path: PathBuf) -> Result<Response, std::io::Error> {
-    let file = File::open(&path)?;
-    let metadata = file.metadata()?;
+async fn serve_actual_file(path: PathBuf) -> Result<Response, std::io::Error> {
+    let file = File::open(&path).await?;
+    let metadata = file.metadata().await?;
     let mime = mime_guess::from_path(&path).first_or_octet_stream();
 
     Ok(Response {

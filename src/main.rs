@@ -3,6 +3,7 @@ mod http;
 mod handlers;
 mod utils;
 
-fn main() {
-    server::serve("0.0.0.0:80");
+#[tokio::main]
+async fn main() {
+    server::serve("0.0.0.0:8080").await;
 }
