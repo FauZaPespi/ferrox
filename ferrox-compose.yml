@@ -1,0 +1,15 @@
+# Minimal working compose file
+
+server:
+  port: 80
+  addr: 0.0.0.0
+
+# Make sure to create these directories before starting Ferrox
+paths:
+  serve_dir: www
+  log_dir: logs
+
+# Optional: default headers that will be sent everytime
+headers:
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY

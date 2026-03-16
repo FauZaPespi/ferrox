@@ -2,7 +2,7 @@
 
 Ferrox is a fast and lightweight web server written in Rust from first principles. The goal of the project is to explore how an HTTP server works internally without hiding the fundamentals behind a large framework, while still achieving high performance.
 
-It is currently focused on one job: serving static files from a `www/` directory with a custom HTTP stack implemented inside the project.
+It is currently focused on one job: serving static files from a custom directory with a custom HTTP stack implemented inside the project.
 
 ## Why this project exists
 
@@ -32,12 +32,13 @@ This codebase is designed to be compact, readable, and an excellent foundation f
 At a high level, Ferrox:
 
 1. Binds an asynchronous TCP listener
-2. Accepts incoming connections and spawns a lightweight Tokio task for each
-3. Safely reads the raw request into a dynamic buffer until the `\r\n\r\n` boundary
-4. Parses the request line into method, path, and HTTP version without allocations where possible
-5. Maps the requested path into the `www/` directory safely
-6. Serves the file (using async I/O) or returns an error page
-7. Writes a full HTTP response back to the client
+2. Loads and applies yml config
+3. Accepts incoming connections and spawns a lightweight Tokio task for each
+4. Safely reads the raw request into a dynamic buffer until the `\r\n\r\n` boundary
+5. Parses the request line into method, path, and HTTP version without allocations where possible
+6. Maps the requested path into the `www/` directory safely
+7. Serves the file (using async I/O) or returns an error page
+8. Writes a full HTTP response back to the client
 
 The code is intentionally split into small modules for server logic, request/response types, error rendering, and static file handling.
 
@@ -46,6 +47,7 @@ The code is intentionally split into small modules for server logic, request/res
 ```text
 src/
   main.rs              Entry point
+  config.rs            Configuration structure and parsing
   server.rs            Async TCP listener and request handling
   handlers/
     static_files.rs    Static file resolution and async delivery
@@ -73,8 +75,6 @@ Then open:
 http://127.0.0.1/
 ```
 
-Important note: the server currently binds to `0.0.0.0:80`. On many systems, binding to port `80` requires elevated privileges. If that is inconvenient during development, changing the port in `src/main.rs` to something like `8080` is the simplest option.
-
 ## Current limitations
 
 Ferrox is intentionally minimal right now. A few practical limitations of the current version:
@@ -88,7 +88,6 @@ Ferrox is intentionally minimal right now. A few practical limitations of the cu
 
 Natural next steps for the project could include:
 
-- TOML/YAML/JSON configuration parsing
 - TLS Support (HTTPS) via `tokio-rustls`
 - Zero-copy request parsing for even lower memory footprint
 - Keep-alive support for persistent connections

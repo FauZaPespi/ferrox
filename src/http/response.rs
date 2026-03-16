@@ -2,6 +2,7 @@ use mime_guess::{Mime, mime};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
+use crate::config::Config;
 use crate::utils::templates::render_error;
 
 pub struct Response {
@@ -18,17 +19,23 @@ pub enum Body {
 }
 
 impl Response {
-    pub async fn write_headers<W: AsyncWriteExt + Unpin>(&self, writer: &mut W,) -> std::io::Result<()> {
+    pub async fn write_headers<W: AsyncWriteExt + Unpin>(
+        &self,
+        writer: &mut W,
+        config: &Config,
+    ) -> std::io::Result<()> {
         let mut header_string = format!(
             "HTTP/1.1 {}\r\n\
          Content-Type: {}\r\n\
          Content-Length: {}\r\n\
          Connection: close\r\n\
-         Server: Ferrox\r\n\
-         X-Content-Type-Options: nosniff\r\n\
-         X-Frame-Options: DENY\r\n",
+         Server: Ferrox\r\n",
             self.status, self.content_type, self.content_length,
         );
+
+        for (key, value) in &config.headers {
+            header_string.push_str(&format!("{}: {}\r\n", key, value));
+        }
 
         for (key, value) in &self.headers {
             header_string.push_str(&format!("{}: {}\r\n", key, value));

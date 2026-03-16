@@ -6,10 +6,8 @@ use std::path::Path;
 use std::{path::PathBuf};
 use tokio::fs::File;
 
-const SERVING_DIR: &str = "www";
-
-pub async fn serve_file(file_path: &String) -> Result<Response, std::io::Error> {
-    let base = Path::new(SERVING_DIR).canonicalize()?;
+pub async fn serve_file(file_path: &String, serving_dir: String) -> Result<Response, std::io::Error> {
+    let base = Path::new(&serving_dir).canonicalize()?;
     let requested_path = base.join(file_path.trim_start_matches('/'));
 
     let canonical = match requested_path.canonicalize() {

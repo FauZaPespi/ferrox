@@ -2,8 +2,13 @@ mod server;
 mod http;
 mod handlers;
 mod utils;
+mod config;
+use config::Config;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    server::serve("0.0.0.0:8080").await;
+    let config: Config = config::Config::load("ferrox-compose.yml").expect("Failed to load ferrox-compose.yml");
+    let shared_config: Arc<Config> = Arc::new(config);
+    server::serve(shared_config).await;
 }
