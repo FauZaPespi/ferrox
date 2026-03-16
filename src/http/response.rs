@@ -5,6 +5,7 @@ use tokio::io::AsyncWriteExt;
 use crate::config::Config;
 use crate::utils::templates::render_error;
 
+/// Stores the status line, headers, content metadata, and body of an HTTP response.
 pub struct Response {
     pub status: String,
     pub content_type: Mime,
@@ -19,6 +20,12 @@ pub enum Body {
 }
 
 impl Response {
+    /// Serializes the HTTP response headers and writes them to the provided writer.
+    ///
+    /// # Arguments
+    ///
+    /// * `writer` - The async writer that receives the serialized header block.
+    /// * `config` - The application configuration containing global response headers.
     pub async fn write_headers<W: AsyncWriteExt + Unpin>(
         &self,
         writer: &mut W,
@@ -48,6 +55,12 @@ impl Response {
         Ok(())
     }
 
+    /// Creates an HTML response backed by an in-memory byte buffer.
+    ///
+    /// # Arguments
+    ///
+    /// * `code` - The HTTP status line, such as `200 OK`.
+    /// * `body` - The HTML payload that will be sent to the client.
     pub fn new_html(code: &str, body: Vec<u8>) -> Response {
         Response {
             status: code.to_string(),
@@ -58,6 +71,12 @@ impl Response {
         }
     }
 
+    /// Creates a redirect response with a `Location` header.
+    ///
+    /// # Arguments
+    ///
+    /// * `code` - The HTTP redirect status line, such as `301 Moved Permanently`.
+    /// * `to` - The target URL or path placed into the `Location` header.
     pub fn redirect(code: &str, to: &str) -> Response {
         Response {
             status: code.to_string(),
@@ -68,6 +87,12 @@ impl Response {
         }
     }
 
+    /// Renders a standard HTML error response for the supplied status and message.
+    ///
+    /// # Arguments
+    ///
+    /// * `code` - The numeric HTTP status code.
+    /// * `message` - The human-readable status message displayed in the template.
     pub fn error(code: &str, message: &str) -> Response {
         let body: Vec<u8> = render_error(code, message);
 

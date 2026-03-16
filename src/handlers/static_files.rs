@@ -6,6 +6,12 @@ use std::path::Path;
 use std::{path::PathBuf};
 use tokio::fs::File;
 
+/// Resolves a requested path inside the configured serving directory and returns a response.
+///
+/// # Arguments
+///
+/// * `file_path` - The request path extracted from the HTTP request line.
+/// * `serving_dir` - The root directory from which static files are served.
 pub async fn serve_file(file_path: &String, serving_dir: String) -> Result<Response, std::io::Error> {
     let base = Path::new(&serving_dir).canonicalize()?;
     let requested_path = base.join(file_path.trim_start_matches('/'));
@@ -36,6 +42,11 @@ pub async fn serve_file(file_path: &String, serving_dir: String) -> Result<Respo
     serve_actual_file(canonical).await
 }
 
+/// Opens a file on disk and wraps it in a streaming `200 OK` response.
+///
+/// # Arguments
+///
+/// * `path` - The canonical filesystem path of the file to serve.
 async fn serve_actual_file(path: PathBuf) -> Result<Response, std::io::Error> {
     let file = File::open(&path).await?;
     let metadata = file.metadata().await?;
@@ -50,6 +61,12 @@ async fn serve_actual_file(path: PathBuf) -> Result<Response, std::io::Error> {
     })
 }
 
+/// Builds an HTML directory listing for a filesystem path.
+///
+/// # Arguments
+///
+/// * `path` - The canonical directory path whose contents should be listed.
+/// * `display_path` - The request path displayed as the page title.
 fn index_files(path: PathBuf, display_path: &String) -> Result<Vec<u8>, std::io::Error> {
     let dir_entries = std::fs::read_dir(&path)?;
     let mut html_list = String::new();

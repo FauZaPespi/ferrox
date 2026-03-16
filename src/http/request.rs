@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io::{Error, ErrorKind, Result};
 
+/// Represents a parsed HTTP request line together with its header map.
 pub struct Request {
     pub method: String,
     pub path: String,
@@ -9,6 +10,11 @@ pub struct Request {
 }
 
 impl Request {
+    /// Parses a raw HTTP request buffer into a [`Request`] value.
+    ///
+    /// # Arguments
+    ///
+    /// * `buffer` - The raw bytes read from the client connection.
     pub fn parse(buffer: &[u8]) -> Result<Self> {
         let request: std::borrow::Cow<'_, str> = String::from_utf8_lossy(buffer);
         let mut lines = request.lines();

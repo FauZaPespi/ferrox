@@ -13,6 +13,11 @@ use crate::config::Config;
 const MAX_HEADER_SIZE: u64 = 8192; // 8KB
 const CONNECTION_TIMEOUT_SEC: u64 = 10;
 
+/// Starts the TCP server and spawns an async task for each accepted connection.
+///
+/// # Arguments
+///
+/// * `config` - Shared server configuration used for binding, serving files, and logging.
 pub async fn serve(config: Arc<Config>) {
     let addr = format!("{}:{}", config.server.addr, config.server.port);
     let listener = TcpListener::bind(&addr).await.expect(&format!("Ferrox failed to bind on http://{addr}"));
@@ -48,6 +53,12 @@ pub async fn serve(config: Arc<Config>) {
     }
 }
 
+/// Reads a single HTTP request from the stream and sends the generated response.
+///
+/// # Arguments
+///
+/// * `stream` - The TCP stream connected to the client.
+/// * `config` - Shared server configuration used for parsing, file serving, and logging.
 async fn handle(mut stream: TcpStream, config: Arc<Config>) -> Result<()> {
     let mut full_data: Vec<u8> = Vec::new();
     let mut temp_buffer: [u8; 1024] = [0u8; 1024];
